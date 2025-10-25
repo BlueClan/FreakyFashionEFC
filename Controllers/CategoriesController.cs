@@ -16,6 +16,7 @@ public class CategoriesController : ControllerBase
         _context = context;
     }
 
+
     // GET: api/categories
     [HttpGet]
     public async Task<ActionResult<List<CategoryDto>>> GetCategories()
