@@ -118,7 +118,7 @@ public class CategoriesController : ControllerBase
         {
             Name = dto.Name,
             Image = dto.Image,
-            Slug = dto.Name.ToLower().Replace(" ", "-")
+            Slug = NormalizeSlug(dto.Name) // Use same normalization
         };
 
         _context.Categories.Add(category);
