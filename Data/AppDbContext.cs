@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-namespace FreakyFashion.Data; // Adjust if folder differs
+namespace FreakyFashion.Data;
 public class AppDbContext : DbContext
 {
     public DbSet<Product> Products { get; set; }

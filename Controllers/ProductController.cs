@@ -17,7 +17,6 @@ public class ProductsController : ControllerBase
         _context = context;
     }
 
-    // GET: api/products
     [HttpGet]
     public async Task<ActionResult<List<ProductDto>>> GetProducts()
     {
@@ -35,7 +34,6 @@ public class ProductsController : ControllerBase
         return Ok(products);
     }
 
-    // GET: api/products/{id}
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDto>> GetProductById(int id)
     {
@@ -57,7 +55,6 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
-    // GET: api/products/by-slug?slug=...
     [HttpGet("by-slug")]
     public async Task<ActionResult<List<ProductDto>>> GetProductBySlug([FromQuery] string? slug)
     {
@@ -80,7 +77,6 @@ public class ProductsController : ControllerBase
         return Ok(products);
     }
 
-    // POST: api/products
     [HttpPost]
     public async Task<ActionResult<ProductDto>> CreateProduct(CreateProductDto dto)
     {
@@ -122,7 +118,6 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, productDto);
     }
 
-    // DELETE: api/products/{id}
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {

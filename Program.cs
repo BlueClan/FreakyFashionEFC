@@ -11,7 +11,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-// Error handler goes here
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>

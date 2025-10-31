@@ -4,6 +4,7 @@ using FreakyFashion.Data;
 using FreakyFashion.Dtos;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 [ApiController]
 [Route("api/categories")]
@@ -16,8 +17,6 @@ public class CategoriesController : ControllerBase
         _context = context;
     }
 
-
-    // GET: api/categories
     [HttpGet]
     public async Task<ActionResult<List<CategoryDto>>> GetCategories()
     {
@@ -43,8 +42,8 @@ public class CategoriesController : ControllerBase
         return Ok(categories);
     }
 
-    // GET: api/categories/{id}
-    [HttpGet("{id}")]
+    
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<CategoryDto>> GetCategoryById(int id)
     {
         var category = await _context.Categories
@@ -73,10 +72,13 @@ public class CategoriesController : ControllerBase
         return Ok(category);
     }
 
-    // GET: api/categories?slug={slug}
+    
     [HttpGet("by-slug")]
-    public async Task<ActionResult<List<CategoryDto>>> GetCategoryBySlug([FromQuery] string slug)
+    public async Task<ActionResult<List<CategoryDto>>> GetCategoryBySlug([FromQuery] string? slug)
     {
+        if (string.IsNullOrEmpty(slug))
+            return Ok(new List<CategoryDto>());
+
         var categories = await _context.Categories
             .Include(c => c.Products)
             .Where(c => c.Slug == slug)
@@ -97,10 +99,10 @@ public class CategoriesController : ControllerBase
                 }).ToList()
             })
             .ToListAsync();
-        return Ok(categories); // Empty list if no match
+
+        return Ok(categories);
     }
 
-    // POST: api/categories
     [HttpPost]
     public async Task<ActionResult<CategoryDto>> CreateCategory(CreateCategoryDto dto)
     {
@@ -118,7 +120,7 @@ public class CategoriesController : ControllerBase
         {
             Name = dto.Name,
             Image = dto.Image,
-            Slug = NormalizeSlug(dto.Name) // Use same normalization
+            Slug = NormalizeSlug(dto.Name)
         };
 
         _context.Categories.Add(category);
@@ -136,8 +138,7 @@ public class CategoriesController : ControllerBase
         return CreatedAtAction(nameof(GetCategoryById), new { id = category.Id }, categoryDto);
     }
 
-    // DELETE: api/categories/{id}
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteCategory(int id)
     {
         var category = await _context.Categories.FindAsync(id);
@@ -148,4 +149,21 @@ public class CategoriesController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
-}
+
+    private string NormalizeSlug(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
+
+        var slug = input.ToLower().Replace(" ", "-");
+
+        slug = Regex.Replace(slug, "[åä]", "a");
+        slug = Regex.Replace(slug, "[öø]", "o");
+        slug = Regex.Replace(slug, "[éèê]", "e");
+        slug = Regex.Replace(slug, "[ü]", "u");
+
+        slug = Regex.Replace(slug, "[^a-z0-9-]", "");
+
+        return slug;
+    }
+} 
