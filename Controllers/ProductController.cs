@@ -110,7 +110,7 @@ public class ProductsController : ControllerBase
             Id = product.Id,
             Name = product.Name,
             Description = product.Description,
-            Price = product.Price,
+            Price = product.Price,s
             Image = product.Image,
             UrlSlug = product.UrlSlug
         };
