@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using FreakyFashion.Data;
 using FreakyFashion.Dtos;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
 [ApiController]
@@ -18,9 +16,26 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ProductDto>>> GetProducts()
+    public async Task<ActionResult<List<ProductDto>>> GetProducts([FromQuery] string? slug = null)
     {
-        var products = await _context.Products
+        if (!string.IsNullOrEmpty(slug))
+        {
+            var products = await _context.Products
+                .Where(p => p.UrlSlug == slug)
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Image = p.Image,
+                    UrlSlug = p.UrlSlug
+                })
+                .ToListAsync();
+
+            return Ok(products);
+        }
+        var allProducts = await _context.Products
             .Select(p => new ProductDto
             {
                 Id = p.Id,
@@ -31,7 +46,8 @@ public class ProductsController : ControllerBase
                 UrlSlug = p.UrlSlug
             })
             .ToListAsync();
-        return Ok(products);
+
+        return Ok(allProducts);
     }
 
     [HttpGet("{id:int}")]
@@ -53,28 +69,6 @@ public class ProductsController : ControllerBase
             return NotFound();
 
         return Ok(product);
-    }
-
-    [HttpGet("by-slug")]
-    public async Task<ActionResult<List<ProductDto>>> GetProductBySlug([FromQuery] string? slug)
-    {
-        if (string.IsNullOrEmpty(slug))
-            return Ok(new List<ProductDto>());
-
-        var products = await _context.Products
-            .Where(p => p.UrlSlug == slug)
-            .Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                Image = p.Image,
-                UrlSlug = p.UrlSlug
-            })
-            .ToListAsync();
-
-        return Ok(products);
     }
 
     [HttpPost]
@@ -110,7 +104,7 @@ public class ProductsController : ControllerBase
             Id = product.Id,
             Name = product.Name,
             Description = product.Description,
-            Price = product.Price,s
+            Price = product.Price,
             Image = product.Image,
             UrlSlug = product.UrlSlug
         };

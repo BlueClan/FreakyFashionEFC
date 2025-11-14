@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using FreakyFashion.Data;
 using FreakyFashion.Dtos;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
 [ApiController]
@@ -18,9 +16,36 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<CategoryDto>>> GetCategories()
+    public async Task<ActionResult<List<CategoryDto>>> GetCategories([FromQuery] string? slug = null)
     {
-        var categories = await _context.Categories
+        if (!string.IsNullOrEmpty(slug))
+        {
+            var categories = await _context.Categories
+                .Include(c => c.Products)
+                .Where(c => c.Slug == slug)
+                .Select(c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Image = c.Image,
+                    Slug = c.Slug,
+                    Products = c.Products.Select(p => new ProductDto
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Description = p.Description,
+                        Price = p.Price,
+                        Image = p.Image,
+                        UrlSlug = p.UrlSlug
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(categories);
+        }
+
+        
+        var allCategories = await _context.Categories
             .Include(c => c.Products)
             .Select(c => new CategoryDto
             {
@@ -39,10 +64,11 @@ public class CategoriesController : ControllerBase
                 }).ToList()
             })
             .ToListAsync();
-        return Ok(categories);
+
+        return Ok(allCategories);
     }
 
-    
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<CategoryDto>> GetCategoryById(int id)
     {
@@ -70,37 +96,6 @@ public class CategoriesController : ControllerBase
             return NotFound();
 
         return Ok(category);
-    }
-
-    
-    [HttpGet("by-slug")]
-    public async Task<ActionResult<List<CategoryDto>>> GetCategoryBySlug([FromQuery] string? slug)
-    {
-        if (string.IsNullOrEmpty(slug))
-            return Ok(new List<CategoryDto>());
-
-        var categories = await _context.Categories
-            .Include(c => c.Products)
-            .Where(c => c.Slug == slug)
-            .Select(c => new CategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Image = c.Image,
-                Slug = c.Slug,
-                Products = c.Products.Select(p => new ProductDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                    Price = p.Price,
-                    Image = p.Image,
-                    UrlSlug = p.UrlSlug
-                }).ToList()
-            })
-            .ToListAsync();
-
-        return Ok(categories);
     }
 
     [HttpPost]
